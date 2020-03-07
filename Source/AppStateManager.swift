@@ -89,6 +89,7 @@ public class AppStateManager {
     }
     
     public func prepareToConnect() {
+        PMLog.D("prepareToConnect")
         if !propertiesManager.hasConnected {
             switch vpnState {
             case .disconnecting:
@@ -115,10 +116,12 @@ public class AppStateManager {
     }
     
     public func cancelConnectionAttempt() {
+        PMLog.D("cancelConnectionAttempt")
         cancelConnectionAttempt {}
     }
     
     public func cancelConnectionAttempt(completion: @escaping () -> Void) {
+        PMLog.D("cancelConnectionAttempt")
         state = .aborted(userInitiated: true)
         attemptingConnection = false
         cancelTimout()
@@ -129,10 +132,12 @@ public class AppStateManager {
     }
     
     public func refreshState() {
+        PMLog.D("refreshState")
         vpnManager.refreshState()
     }
     
     public func connect(withConfiguration configuration: VpnManagerConfiguration) {
+        PMLog.D("connect")
         guard let reachability = reachability else { return }
         if case AppState.aborted = state { return }
         
@@ -166,6 +171,7 @@ public class AppStateManager {
     }
     
     public func disconnect() {
+        PMLog.D("disconnect")
         disconnect {}
     }
     
@@ -176,6 +182,7 @@ public class AppStateManager {
     }
     
     public func connectedDate() -> Date? {
+        PMLog.D("connectedDate")
         let savedDate = Date(timeIntervalSince1970: propertiesManager.lastConnectedTimeStamp)
         if let connectionDate = vpnManager.connectedDate(), connectionDate > savedDate {
             propertiesManager.lastConnectedTimeStamp = connectionDate.timeIntervalSince1970
@@ -187,6 +194,7 @@ public class AppStateManager {
     
     // MARK: - Private functions
     private func beginTimoutCountdown() {
+        PMLog.D("beginTimoutCountdown")
         cancelTimout()
         timeoutTimer = timerFactory.timer(timeInterval: 30, repeats: false, block: { [weak self] _ in
             self?.timeout()
@@ -196,6 +204,7 @@ public class AppStateManager {
     }
     
     private func cancelTimout() {
+        PMLog.D("cancelTimout")
         timeoutTimer?.invalidate()
     }
     
@@ -215,6 +224,7 @@ public class AppStateManager {
     }
     
     private func makeConnection(configuration: VpnManagerConfiguration) {
+        PMLog.D("makeConnection")
         let completion: () -> Void = { [weak self] in
             self?.propertiesManager.lastServerId = configuration.serverId
             self?.propertiesManager.lastServerIp = configuration.exitServerAddress
@@ -232,6 +242,7 @@ public class AppStateManager {
     }
     
     private func setupReachability() {
+        PMLog.D("setupReachability")
         guard let reachability = reachability else {
             return
         }
@@ -244,6 +255,7 @@ public class AppStateManager {
     }
     
     private func startObserving() {
+        PMLog.D("startObserving")
         vpnManager.stateChanged = { [weak self] in
             self?.vpnStateChanged()
         }
@@ -252,6 +264,7 @@ public class AppStateManager {
     }
     
     @objc private func vpnStateChanged() {
+        PMLog.D("vpnStateChanged")
         reachability?.whenReachable = nil
         
         let newState = vpnManager.state
@@ -272,6 +285,7 @@ public class AppStateManager {
     }
     
     @objc private func killSwitchChanged() {
+        PMLog.D("killSwitchChanged")
         if state.isConnected {
             propertiesManager.intentionallyDisconnected = true
             vpnManager.setOnDemand(propertiesManager.hasConnected)
@@ -280,6 +294,7 @@ public class AppStateManager {
     
     // swiftlint:disable cyclomatic_complexity
     private func handleVpnStateChange(_ vpnState: VpnState) {
+        PMLog.D("handleVpnStateChange")
         if case VpnState.disconnecting = vpnState {} else {
             stuckDisconnecting = false
         }
@@ -336,15 +351,18 @@ public class AppStateManager {
     // swiftlint:enable cyclomatic_complexity
     
     private func unknownError(_ vpnState: VpnState) {
+        PMLog.D("unknownError")
         handleVpnStateChange(vpnState)
     }
     
     private func connectionFailed() {
+        PMLog.D("connectionFailed")
         state = .error(NSError(code: 0, localizedDescription: ""))
         notifyObservers()
     }
     
     private func checkDelinquency(credentials: VpnCredentials) -> Bool {
+        PMLog.D("checkDelinquency")
         if credentials.isDelinquent {
             alertService?.push(alert: DelinquentUserAlert(confirmHandler: {
                 SafariService.openLink(url: CoreAppConstants.ProtonVpnLinks.accountDashboard)
@@ -358,6 +376,7 @@ public class AppStateManager {
     }
     
     private func handleVpnError(_ vpnState: VpnState) {
+        PMLog.D("handleVpnError")
         // In the rare event that the vpn is stuck not disconnecting, show a helpful alert
         if case VpnState.disconnecting(_) = vpnState, stuckDisconnecting {
             PMLog.D("Stale VPN connection failing to disconnect")
@@ -427,6 +446,7 @@ public class AppStateManager {
     }
     
     private func notifyNetworkUnreachable() {
+        PMLog.D("notifyNetworkUnreachable")
         attemptingConnection = false
         cancelTimout()
         connectionFailed()
@@ -449,14 +469,17 @@ public class AppStateManager {
     }
     
     private func vpnStuck() {
+        PMLog.D("vpnStuck")
         vpnManager.removeConfiguration(completionHandler: { [weak self] error in
             guard let `self` = self else { return }
             guard error == nil, self.reconnectingAfterStuckDisconnecting == false, let lastConfig = self.lastAttemptedConfiguration else {
+                PMLog.D("vpnStuck VpnStuckAlert")
                 self.alertService?.push(alert: VpnStuckAlert())
                 self.connectionFailed()
                 return
             }
             self.reconnectingAfterStuckDisconnecting = true
+            PMLog.D("vpnStuck retry connection")
             self.connect(withConfiguration: lastConfig) // Retry connection
         })
     }

@@ -248,6 +248,8 @@ public class VpnManager: VpnManagerProtocol {
         let username = vpnManager.protocolConfiguration?.username ?? ""
         let serverAddress = vpnManager.protocolConfiguration?.serverAddress ?? ""
         
+        PMLog.ET("newState: \(status)")
+        
         switch status {
         case 0:
             return .invalid
