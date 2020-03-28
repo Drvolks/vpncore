@@ -57,6 +57,7 @@ public class VpnManager: VpnManagerProtocol {
     }
     
     public init() {
+         PMLog.D("init")
         setState()
         startObserving()
         startupRoutine()
@@ -97,6 +98,7 @@ public class VpnManager: VpnManagerProtocol {
     }
     
     public func refreshState() {
+         PMLog.D("refreshState")
         setState()
     }
     
@@ -104,6 +106,7 @@ public class VpnManager: VpnManagerProtocol {
     // MARK: - Connecting
     private func prepareConnection(forConfiguration configuration: VpnManagerConfiguration,
                                    completion: @escaping () -> Void) {
+         PMLog.D("prepareConnection")
         if state.volatileConnection {
             setState()
             return
@@ -276,6 +279,7 @@ public class VpnManager: VpnManagerProtocol {
      *  to be loaded in order for storing of further configurations to work.
      */
     private func startupRoutine() {
+        PMLog.D("startupRoutine")
         vpnManager.loadFromPreferences { [weak self] error in
             guard let `self` = self else { return }
             
@@ -286,6 +290,7 @@ public class VpnManager: VpnManagerProtocol {
     }
     
     @objc private func vpnStatusChanged() {
+        PMLog.D("vpnStatusChanged")
         setState()
     }
 }

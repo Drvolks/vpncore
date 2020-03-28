@@ -294,7 +294,7 @@ public class AppStateManager {
     
     // swiftlint:disable cyclomatic_complexity
     private func handleVpnStateChange(_ vpnState: VpnState) {
-        PMLog.D("handleVpnStateChange")
+        PMLog.D("handleVpnStateChange \(vpnState.description)")
         if case VpnState.disconnecting = vpnState {} else {
             stuckDisconnecting = false
         }

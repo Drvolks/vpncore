@@ -161,9 +161,9 @@ public class PMLog {
     
     // swiftlint:disable no_print
     public static func printToConsole(_ text: String) {
-        #if DEBUG
+        //#if DEBUG
         print(text)
-        #endif
+      //  #endif
     }
     // swiftlint:enable no_print
 }
